@@ -1,13 +1,17 @@
+import { get, set } from "./accessors";
+import { KeyPath } from "./readonly";
+import { WritableKeyPath } from "./readwrite";
+
 type AreEqual<A, E> = A extends E
   ? E extends A
-    ? true
-    : { diff1: Exclude<E, A>; a: A; e: E }
+  ? true
+  : { diff1: Exclude<E, A>; a: A; e: E }
   : { diff2: Exclude<A, E>; a: A; e: E };
 
 function expect<Actual>(value: Actual) {
   return {
     toBe: function <Expected>(): AreEqual<Actual, Expected> {
-      return undefined as any;
+      return value as any;
     },
   };
 }
@@ -32,7 +36,6 @@ interface User {
 
   readWriteAll: any;
   readonly readAll: any;
-  
   pet: Pet;
   nulPet: Pet | null;
   optPet?: Pet;
@@ -49,7 +52,7 @@ interface User {
 
 // ------------------------------------------------------------------------------------
 
-const tests: true[] = [
+export const tests: true[] = [
   expect(KeyPath<User>()).toBe<WritableKeyPath<User, User>>(),
 
   expect(KeyPath<User>().name).toBe<WritableKeyPath<User, string>>(),
@@ -152,7 +155,6 @@ const tests: true[] = [
   expect(KeyPath<User>().undPets[0].toys).toBe<KeyPath<User, Toy[] | undefined>>(),
   expect(KeyPath<User>().undPets[0].toys[0]).toBe<KeyPath<User, Toy | undefined>>(),
   expect(KeyPath<User>().undPets[0].toys[0].name).toBe<KeyPath<User, string | undefined>>(),
-  
   expect(KeyPath<User>().twoPets[0].name).toBe<WritableKeyPath<User, string>>(),
   expect(KeyPath<User>().twoPets[0].toy).toBe<WritableKeyPath<User, Toy>>(),
   expect(KeyPath<User>().twoPets[0].toy.name).toBe<WritableKeyPath<User, string>>(),
@@ -172,10 +174,10 @@ const user: User = {
     random: Math.random,
     readWriteAll: 42,
     readAll: 42,
-    toy: {name: 'Pet Toy'},
+    toy: { name: 'Pet Toy' },
     toys: [
-      {name: 'Pet Toys[0]'},
-      {name: 'Pet Toys[1]'},
+      { name: 'Pet Toys[0]' },
+      { name: 'Pet Toys[1]' },
     ],
   },
   nulPet: null,
@@ -184,10 +186,10 @@ const user: User = {
     random: Math.random,
     readWriteAll: 42,
     readAll: 42,
-    toy: {name: 'Und Pet Toy'},
+    toy: { name: 'Und Pet Toy' },
     toys: [
-      {name: 'Und Pet Toys[0]'},
-      {name: 'Und Pet Toys[1]'},
+      { name: 'Und Pet Toys[0]' },
+      { name: 'Und Pet Toys[1]' },
     ],
   },
   pets: [
@@ -196,10 +198,10 @@ const user: User = {
       random: Math.random,
       readWriteAll: 42,
       readAll: 42,
-      toy: {name: 'Pets[0] Toy'},
+      toy: { name: 'Pets[0] Toy' },
       toys: [
-        {name: 'Pets[0] Toys[0]'},
-        {name: 'Pets[0] Toys[1]'},
+        { name: 'Pets[0] Toys[0]' },
+        { name: 'Pets[0] Toys[1]' },
       ],
     },
   ],
@@ -212,10 +214,10 @@ const user: User = {
       random: Math.random,
       readWriteAll: 42,
       readAll: 42,
-      toy: {name: 'TwoPets[0] Toy'},
+      toy: { name: 'TwoPets[0] Toy' },
       toys: [
-        {name: 'TwoPets[0] Toys[0]'},
-        {name: 'TwoPets[0] Toys[1]'},
+        { name: 'TwoPets[0] Toys[0]' },
+        { name: 'TwoPets[0] Toys[1]' },
       ],
     },
     {
@@ -223,71 +225,71 @@ const user: User = {
       random: Math.random,
       readWriteAll: 42,
       readAll: 42,
-      toy: {name: 'TwoPets[1] Toy'},
+      toy: { name: 'TwoPets[1] Toy' },
       toys: [
-        {name: 'TwoPets[1] Toys[0]'},
-        {name: 'TwoPets[1] Toys[1]'},
+        { name: 'TwoPets[1] Toys[0]' },
+        { name: 'TwoPets[1] Toys[1]' },
       ],
     },
   ],
 }
 
 
-console.log('\User.name',      KeyPath<User>().name[get](user))
-console.log('\User.unit',      KeyPath<User>().unit[get](user))
-console.log('\User.fakeUnit',  KeyPath<User>().fakeUnit[get](user))
+console.log('\User.name', KeyPath<User>().name[get](user))
+console.log('\User.unit', KeyPath<User>().unit[get](user))
+console.log('\User.fakeUnit', KeyPath<User>().fakeUnit[get](user))
 
-console.log('\User.pet',               KeyPath<User>().pet[get](user))
-console.log('\User.pet.name',          KeyPath<User>().pet.name[get](user))
-console.log('\User.pet.toy',           KeyPath<User>().pet.toy[get](user))
-console.log('\User.pet.toy.name',      KeyPath<User>().pet.toy.name[get](user))
-console.log('\User.pet.toys',          KeyPath<User>().pet.toys[get](user))
-console.log('\User.pet.toys[0]',       KeyPath<User>().pet.toys[0][get](user))
-console.log('\User.pet.toys[0].name',  KeyPath<User>().pet.toys[0].name[get](user))
-console.log('\User.pet.toys[1]',       KeyPath<User>().pet.toys[1][get](user))
-console.log('\User.pet.toys[1].name',  KeyPath<User>().pet.toys[1].name[get](user))
-console.log('\User.pet.toys[2]',       KeyPath<User>().pet.toys[2][get](user))
+console.log('\User.pet', KeyPath<User>().pet[get](user))
+console.log('\User.pet.name', KeyPath<User>().pet.name[get](user))
+console.log('\User.pet.toy', KeyPath<User>().pet.toy[get](user))
+console.log('\User.pet.toy.name', KeyPath<User>().pet.toy.name[get](user))
+console.log('\User.pet.toys', KeyPath<User>().pet.toys[get](user))
+console.log('\User.pet.toys[0]', KeyPath<User>().pet.toys[0][get](user))
+console.log('\User.pet.toys[0].name', KeyPath<User>().pet.toys[0].name[get](user))
+console.log('\User.pet.toys[1]', KeyPath<User>().pet.toys[1][get](user))
+console.log('\User.pet.toys[1].name', KeyPath<User>().pet.toys[1].name[get](user))
+console.log('\User.pet.toys[2]', KeyPath<User>().pet.toys[2][get](user))
 
-console.log('\User.nulPet',           KeyPath<User>().nulPet[get](user))
-console.log('\User.nulPet.name',      KeyPath<User>().nulPet.name[get](user))
-console.log('\User.nulPet.toy',       KeyPath<User>().nulPet.toy[get](user))
-console.log('\User.nulPet.toy.name',  KeyPath<User>().nulPet.toy.name[get](user))
+console.log('\User.nulPet', KeyPath<User>().nulPet[get](user))
+console.log('\User.nulPet.name', KeyPath<User>().nulPet.name[get](user))
+console.log('\User.nulPet.toy', KeyPath<User>().nulPet.toy[get](user))
+console.log('\User.nulPet.toy.name', KeyPath<User>().nulPet.toy.name[get](user))
 
-console.log('\User.undPet',           KeyPath<User>().undPet[get](user))
-console.log('\User.undPet.name',      KeyPath<User>().undPet.name[get](user))
-console.log('\User.undPet.toy',       KeyPath<User>().undPet.toy[get](user))
-console.log('\User.undPet.toy.name',  KeyPath<User>().undPet.toy.name[get](user))
+console.log('\User.undPet', KeyPath<User>().undPet[get](user))
+console.log('\User.undPet.name', KeyPath<User>().undPet.name[get](user))
+console.log('\User.undPet.toy', KeyPath<User>().undPet.toy[get](user))
+console.log('\User.undPet.toy.name', KeyPath<User>().undPet.toy.name[get](user))
 
-console.log('\User.pets',                  KeyPath<User>().pets[get](user))
-console.log('\User.pets[0]',               KeyPath<User>().pets[0][get](user))
-console.log('\User.pets[0].name',          KeyPath<User>().pets[0].name[get](user))
-console.log('\User.pets[0].toy',           KeyPath<User>().pets[0].toy[get](user))
-console.log('\User.pets[0].toy.name',      KeyPath<User>().pets[0].toy.name[get](user))
-console.log('\User.pets[0].toys',          KeyPath<User>().pets[0].toys[get](user))
-console.log('\User.pets[0].toys[0]',       KeyPath<User>().pets[0].toys[0][get](user))
-console.log('\User.pets[0].toys[0].name',  KeyPath<User>().pets[0].toys[0].name[get](user))
-console.log('\User.pets[0].toys[1]',       KeyPath<User>().pets[0].toys[1][get](user))
-console.log('\User.pets[0].toys[1].name',  KeyPath<User>().pets[0].toys[1].name[get](user))
+console.log('\User.pets', KeyPath<User>().pets[get](user))
+console.log('\User.pets[0]', KeyPath<User>().pets[0][get](user))
+console.log('\User.pets[0].name', KeyPath<User>().pets[0].name[get](user))
+console.log('\User.pets[0].toy', KeyPath<User>().pets[0].toy[get](user))
+console.log('\User.pets[0].toy.name', KeyPath<User>().pets[0].toy.name[get](user))
+console.log('\User.pets[0].toys', KeyPath<User>().pets[0].toys[get](user))
+console.log('\User.pets[0].toys[0]', KeyPath<User>().pets[0].toys[0][get](user))
+console.log('\User.pets[0].toys[0].name', KeyPath<User>().pets[0].toys[0].name[get](user))
+console.log('\User.pets[0].toys[1]', KeyPath<User>().pets[0].toys[1][get](user))
+console.log('\User.pets[0].toys[1].name', KeyPath<User>().pets[0].toys[1].name[get](user))
 
-console.log('\User.undPets',                  KeyPath<User>().undPets[get](user))
-console.log('\User.undPets[1]',               KeyPath<User>().undPets[1][get](user))
-console.log('\User.undPets[1].toys[1].name',  KeyPath<User>().undPets[1].toys[1].name[get](user))
+console.log('\User.undPets', KeyPath<User>().undPets[get](user))
+console.log('\User.undPets[1]', KeyPath<User>().undPets[1][get](user))
+console.log('\User.undPets[1].toys[1].name', KeyPath<User>().undPets[1].toys[1].name[get](user))
 
 KeyPath<User>().undPets[1][set](user, {
   name: 'Und Pets[1]',
   random: Math.random,
   readWriteAll: 42,
   readAll: 42,
-  toy: {name: 'Und Pets[1] Toy'},
+  toy: { name: 'Und Pets[1] Toy' },
   toys: [
-    {name: 'Und Pets[1] Toys[0]'},
-    {name: 'Und Pets[1] Toys[1]'},
+    { name: 'Und Pets[1] Toys[0]' },
+    { name: 'Und Pets[1] Toys[1]' },
   ],
 })
 
-console.log('\User.undPets',                  KeyPath<User>().undPets[get](user))
-console.log('\User.undPets[1]',               KeyPath<User>().undPets[1][get](user))
-console.log('\User.undPets[1].toys[1].name',  KeyPath<User>().undPets[1].toys[1].name[get](user))
+console.log('\User.undPets', KeyPath<User>().undPets[get](user))
+console.log('\User.undPets[1]', KeyPath<User>().undPets[1][get](user))
+console.log('\User.undPets[1].toys[1].name', KeyPath<User>().undPets[1].toys[1].name[get](user))
 
 KeyPath<User>().readWriteAll[set](user, 'hello world')
 

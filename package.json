@@ -1,0 +1,17 @@
+{
+    "name": "ts-overture",
+    "version": "0.0.1",
+    "description": "TypeScript library for function composition.",
+    "type": "commonjs",
+    "main": "dist/index.js",
+    "scripts": {
+        "test": "jasmine --config=jasmine.json"
+    },
+    "devDependencies": {
+        "@types/jasmine": "^3.10.3",
+        "jasmine": "^4.0.2",
+        "jasmine-spec-reporter": "^7.0.0",
+        "ts-node": "^10.4.0",
+        "typescript": "^4.1"
+    }
+}

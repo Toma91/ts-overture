@@ -1,3 +1,8 @@
+import { get, KeyPathGetter, KeyPathSetter, set } from "./accessors"
+import { ExcludeFunction, IfContainsNull, IfContainsUndefined, ReadonlyKeys } from "./helpers"
+import { KeyPath } from "./readonly"
+import { WritableKeyPath } from "./readwrite"
+
 type ObjectWritableKeyPathForNullableValue<Root extends object, NonNullableValue> = {
   [K in keyof NonNullableValue as ExcludeFunction<NonNullableValue, K>]-?: KeyPath<Root, NonNullableValue[K] | null>
 } & {
@@ -14,14 +19,14 @@ type ObjectWritableKeyPathForUndefineableValue<Root extends object, NonUndefinea
 
 type ObjectWritableKeyPathForRealValue<Root extends object, Value> = {
   [K in keyof Value as ExcludeFunction<Value, K>]-?: K extends ReadonlyKeys<Value>
-    ? KeyPath<Root, Value[K]>
-    : WritableKeyPath<Root, Value[K]>
+  ? KeyPath<Root, Value[K]>
+  : WritableKeyPath<Root, Value[K]>
 } & {
   [get]: KeyPathGetter<Root, Value>
   [set]: KeyPathSetter<Root, Value>
 }
 
-type ObjectWritableKeyPath<Root extends object, Value> = IfContainsNull<
+export type ObjectWritableKeyPath<Root extends object, Value> = IfContainsNull<
   Value,
   ObjectWritableKeyPathForNullableValue<Root, Exclude<Value, null>>,
   IfContainsUndefined<

@@ -1,3 +1,7 @@
+import { get, KeyPathGetter } from "./accessors"
+import { IfContainsNull, IfContainsUndefined, IndexesOf } from "./helpers"
+import { KeyPath } from "./readonly"
+
 type ArrayKeyPathForNullableArrayValue<Root extends object, NonNullableArrayValue> = NonNullableArrayValue extends any[] ? {
   [Index in IndexesOf<NonNullableArrayValue>]: KeyPath<Root, NonNullableArrayValue[Index] | null>
 } & {
@@ -16,10 +20,10 @@ type ArrayKeyPathForRealArrayValue<Root extends object, ArrayValue> = ArrayValue
   [Index in IndexesOf<ArrayValue>]: KeyPath<Root, ArrayValue[Index]>
 } & {
   length: KeyPath<Root, number>
-  [get]: KeyPathGetter<Root, ArrayValue>    
+  [get]: KeyPathGetter<Root, ArrayValue>
 } : never
 
-type ArrayKeyPath<Root extends object, ArrayValue> = IfContainsNull<
+export type ArrayKeyPath<Root extends object, ArrayValue> = IfContainsNull<
   ArrayValue,
   ArrayKeyPathForNullableArrayValue<Root, Exclude<ArrayValue, null>>,
   IfContainsUndefined<

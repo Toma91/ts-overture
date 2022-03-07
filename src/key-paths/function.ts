@@ -1,3 +1,5 @@
+/*import { WritableKeyPath } from "./readwrite"
+
 function KeyPath<Root extends object>(): WritableKeyPath<Root, Root> {
   function makeKeyPath<Root extends object, Value>(getter: KeyPathGetter<Root, Value>, setter: KeyPathSetter<Root, Value>): WritableKeyPath<Root, Value> {
     return new Proxy({[get]: getter, [set]: setter} as any, {
@@ -42,4 +44,4 @@ function KeyPath<Root extends object>(): WritableKeyPath<Root, Root> {
       for (const prop in value) root[prop] = value[prop]
     }
   )
-}
+}*/

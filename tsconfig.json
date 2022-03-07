@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es2015",
+        "declaration": true,
+        "esModuleInterop": true,
+        "sourceMap": true,
+        "inlineSources": true,
+        "outDir": "./dist",
+
+        "strict": true,
+        "noImplicitAny": true,
+        "strictNullChecks": true 
+    },
+    "include": [
+        "src/**/*.ts"
+    ],
+    "exclude": [
+        "node_modules/**"
+    ]
+}

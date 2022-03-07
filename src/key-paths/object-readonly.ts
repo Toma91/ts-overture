@@ -1,3 +1,7 @@
+import { get, KeyPathGetter } from "./accessors"
+import { ExcludeFunction, IfContainsNull, IfContainsUndefined } from "./helpers"
+import { KeyPath } from "./readonly"
+
 type ObjectKeyPathForNullableValue<Root extends object, NonNullableValue> = {
   [K in keyof NonNullableValue as ExcludeFunction<NonNullableValue, K>]-?: KeyPath<Root, NonNullableValue[K] | null>
 } & {
@@ -13,10 +17,10 @@ type ObjectKeyPathForUndefineableValue<Root extends object, NonUndefineableValue
 type ObjectKeyPathForNonNullableValue<Root extends object, Value> = {
   [K in keyof Value as ExcludeFunction<Value, K>]-?: KeyPath<Root, Value[K]>
 } & {
-  [get]: KeyPathGetter<Root, Value>  
+  [get]: KeyPathGetter<Root, Value>
 }
 
-type ObjectKeyPath<Root extends object, Value> = IfContainsNull<
+export type ObjectKeyPath<Root extends object, Value> = IfContainsNull<
   Value,
   ObjectKeyPathForNullableValue<Root, Exclude<Value, null>>,
   IfContainsUndefined<

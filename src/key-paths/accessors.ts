@@ -1,5 +1,5 @@
-const get: unique symbol = Symbol()
-const set: unique symbol = Symbol()
+export const get: unique symbol = Symbol()
+export const set: unique symbol = Symbol()
 
-type KeyPathGetter<Root extends object, Value> = (root: Root) => Value
-type KeyPathSetter<Root extends object, Value> = (root: Root, value: Value) => void
+export type KeyPathGetter<Root extends object, Value> = (root: Root) => Value
+export type KeyPathSetter<Root extends object, Value> = (root: Root, value: Value) => void

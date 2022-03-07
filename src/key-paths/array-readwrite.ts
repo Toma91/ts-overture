@@ -1,3 +1,8 @@
+import { get, KeyPathGetter, KeyPathSetter, set } from "./accessors"
+import { IfContainsNull, IfContainsUndefined, IndexesOf } from "./helpers"
+import { KeyPath } from "./readonly"
+import { WritableKeyPath } from "./readwrite"
+
 type ArrayWritableKeyPathForNullableArrayValue<Root extends object, NonNullableArrayValue> = NonNullableArrayValue extends any[] ? {
   [Index in IndexesOf<NonNullableArrayValue>]: KeyPath<Root, NonNullableArrayValue[Index] | null>
 } & {
@@ -22,7 +27,7 @@ type ArrayWritableKeyPathForRealArrayValue<Root extends object, ArrayValue> = Ar
   [set]: KeyPathSetter<Root, ArrayValue>
 } : never
 
-type ArrayWritableKeyPath<Root extends object, ArrayValue> = IfContainsNull<
+export type ArrayWritableKeyPath<Root extends object, ArrayValue> = IfContainsNull<
   ArrayValue,
   ArrayWritableKeyPathForNullableArrayValue<Root, Exclude<ArrayValue, null>>,
   IfContainsUndefined<
