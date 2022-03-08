@@ -1,13 +1,3 @@
-// --------------------  to be deleted  --------------------------------------------------------------------------------
-
-type IfContainsNull<Value, IfTrue, IfFalse> = null extends Value
-  ? IfTrue
-  : IfFalse
-
-type IfContainsUndefined<Value, IfTrue, IfFalse> = undefined extends Value
-  ? IfTrue
-  : IfFalse
-
 // --------------------  helpers  --------------------------------------------------------------------------------------
 
 type ExcludeFunction<Value, K extends keyof Value> = Value[K] extends Function ? never : K
@@ -95,7 +85,18 @@ type Unified_ObjectKeyPath<
 
 // --------------------  array  ----------------------------------------------------------------------------------------
 
-type Unified_ArrayKeyPathForNullableArrayValue<
+type Unified_ArrayKeyPathForUnitableValue<
+  Root extends object,
+  NonUnitableArrayValue,
+  IsWritable extends boolean,
+  Unit extends null | undefined | void
+> = NonUnitableArrayValue extends any[] ? {
+  [Index in IndexesOf<NonUnitableArrayValue>]: KeyPath<Root, NonUnitableArrayValue[Index] | Unit>
+} & AccessorsForKeyPath<Root, NonUnitableArrayValue | Unit, IsWritable> & {
+  length: KeyPath<Root, number | Unit>
+} : never
+
+/*type Unified_ArrayKeyPathForNullableArrayValue<
   Root extends object,
   NonNullableArrayValue,
   IsWritable extends boolean
@@ -113,7 +114,7 @@ type Unified_ArrayKeyPathForUndefineableArrayValue<
   [Index in IndexesOf<NonUndefineableArrayValue>]: KeyPath<Root, NonUndefineableArrayValue[Index] | undefined>
 } & AccessorsForKeyPath<Root, NonUndefineableArrayValue | undefined, IsWritable> & {
   length: KeyPath<Root, number | undefined>
-} : never
+} : never*/
 
 type Unified_ArrayKeyPathForRealArrayValue<
   Root extends object,
@@ -125,7 +126,7 @@ type Unified_ArrayKeyPathForRealArrayValue<
   length: Unified_KeyPath<Root, number, IsWritable>
 } : never
 
-type Unified_ArrayKeyPath<
+/*type Unified_ArrayKeyPath<
   Root extends object,
   ArrayValue,
   IsWritable extends boolean
@@ -137,7 +138,19 @@ type Unified_ArrayKeyPath<
     Unified_ArrayKeyPathForUndefineableArrayValue<Root, Exclude<ArrayValue, undefined>, IsWritable>,
     Unified_ArrayKeyPathForRealArrayValue<Root, ArrayValue, IsWritable>
   >
->
+>*/
+
+type Unified_ArrayKeyPath<
+  Root extends object,
+  ArrayValue,
+  IsWritable extends boolean
+> = ExtractUnit<ArrayValue> extends never
+  ? Unified_ArrayKeyPathForRealArrayValue<Root, ArrayValue, IsWritable>
+  : ExtractUnit<ArrayValue> extends infer Unit
+    ? Unit extends null | undefined | void
+      ? Unified_ArrayKeyPathForUnitableValue<Root, Exclude<ArrayValue, Unit>, IsWritable, Unit>
+      : never
+    : never
 
 // --------------------  key path  -------------------------------------------------------------------------------------
 
