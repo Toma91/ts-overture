@@ -96,26 +96,6 @@ type Unified_ArrayKeyPathForUnitableValue<
   length: KeyPath<Root, number | Unit>
 } : never
 
-/*type Unified_ArrayKeyPathForNullableArrayValue<
-  Root extends object,
-  NonNullableArrayValue,
-  IsWritable extends boolean
-> = NonNullableArrayValue extends any[] ? {
-  [Index in IndexesOf<NonNullableArrayValue>]: KeyPath<Root, NonNullableArrayValue[Index] | null>
-} & AccessorsForKeyPath<Root, NonNullableArrayValue | null, IsWritable> & {
-  length: KeyPath<Root, number | null>
-} : never
-
-type Unified_ArrayKeyPathForUndefineableArrayValue<
-  Root extends object,
-  NonUndefineableArrayValue,
-  IsWritable extends boolean
-> = NonUndefineableArrayValue extends any[] ? {
-  [Index in IndexesOf<NonUndefineableArrayValue>]: KeyPath<Root, NonUndefineableArrayValue[Index] | undefined>
-} & AccessorsForKeyPath<Root, NonUndefineableArrayValue | undefined, IsWritable> & {
-  length: KeyPath<Root, number | undefined>
-} : never*/
-
 type Unified_ArrayKeyPathForRealArrayValue<
   Root extends object,
   ArrayValue,
@@ -125,20 +105,6 @@ type Unified_ArrayKeyPathForRealArrayValue<
 } & AccessorsForKeyPath<Root, ArrayValue, IsWritable> & {
   length: Unified_KeyPath<Root, number, IsWritable>
 } : never
-
-/*type Unified_ArrayKeyPath<
-  Root extends object,
-  ArrayValue,
-  IsWritable extends boolean
-> = IfContainsNull<
-  ArrayValue,
-  Unified_ArrayKeyPathForNullableArrayValue<Root, Exclude<ArrayValue, null>, IsWritable>,
-  IfContainsUndefined<
-    ArrayValue,
-    Unified_ArrayKeyPathForUndefineableArrayValue<Root, Exclude<ArrayValue, undefined>, IsWritable>,
-    Unified_ArrayKeyPathForRealArrayValue<Root, ArrayValue, IsWritable>
-  >
->*/
 
 type Unified_ArrayKeyPath<
   Root extends object,
@@ -152,9 +118,42 @@ type Unified_ArrayKeyPath<
       : never
     : never
 
+// --------------------  unified  --------------------------------------------------------------------------------------
+
+type Unified_KeyPathForUnitableValue<
+  Root extends object,
+  NonUnitableValue,
+  IsWritable extends boolean,
+  Unit extends null | undefined | void
+> = (NonUnitableValue extends any[]
+  ? { [Index in IndexesOf<NonUnitableValue>]: KeyPath<Root, NonUnitableValue[Index] | Unit> } & { length: KeyPath<Root, number | Unit> }
+  : { [K in keyof NonUnitableValue as ExcludeFunction<NonUnitableValue, K>]-?: KeyPath<Root, NonUnitableValue[K] | Unit> })
+  & AccessorsForKeyPath<Root, NonUnitableValue | Unit, IsWritable>
+
+type Unified_KeyPathForRealValue<
+  Root extends object,
+  Value,
+  IsWritable extends boolean
+> = (Value extends any[]
+  ? { [Index in IndexesOf<Value>]: Unified_KeyPath<Root, Value[Index], IsWritable> } & { length: Unified_KeyPath<Root, number, IsWritable> }
+  : { [K in keyof Value as ExcludeFunction<Value, K>]-?: Unified_KeyPath<Root, Value[K], IsWritable & (K extends ReadonlyKeys<Value> ? false : true)> })
+  & AccessorsForKeyPath<Root, Value, IsWritable>
+
+type _Unified_KeyPath_<
+  Root extends object,
+  Value,
+  IsWritable extends boolean
+> = ExtractUnit<Value> extends never
+  ? Unified_KeyPathForRealValue<Root, Value, IsWritable>
+  : ExtractUnit<Value> extends infer Unit
+    ? Unit extends null | undefined | void
+      ? Unified_KeyPathForUnitableValue<Root, Exclude<Value, Unit>, IsWritable, Unit>
+      : never
+    : never
+    
 // --------------------  key path  -------------------------------------------------------------------------------------
 
-type Unified_KeyPath<Root extends object, Value, IsWritable extends boolean> = true extends IsAny<Value>
+type Unified_KeyPath_ORIG<Root extends object, Value, IsWritable extends boolean> = true extends IsAny<Value>
   ? AccessorsForKeyPath<Root, Value, IsWritable>
   : NonNullable<Value> extends never
     ? AccessorsForKeyPath<Root, Value, IsWritable>
@@ -163,6 +162,14 @@ type Unified_KeyPath<Root extends object, Value, IsWritable extends boolean> = t
       : NonNullable<Value> extends object
         ? Unified_ObjectKeyPath<Root, Value, IsWritable>
         : AccessorsForKeyPath<Root, Value, IsWritable>
+
+type Unified_KeyPath<Root extends object, Value, IsWritable extends boolean> = true extends IsAny<Value>
+  ? AccessorsForKeyPath<Root, Value, IsWritable>
+  : NonNullable<Value> extends never
+    ? AccessorsForKeyPath<Root, Value, IsWritable>
+    : NonNullable<Value> extends object
+      ? _Unified_KeyPath_<Root, Value, IsWritable>
+      : AccessorsForKeyPath<Root, Value, IsWritable>
 
 export type WritableKeyPath<Root extends object, Value> = Unified_KeyPath<Root, Value, true>
 export type KeyPath<Root extends object, Value> = Unified_KeyPath<Root, Value, false>
