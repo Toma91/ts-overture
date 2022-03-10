@@ -1,7 +1,10 @@
+/* eslint-disable no-use-before-define */
+
 // --------------------  helpers  --------------------------------------------------------------------------------------
 
-type ExcludeFunction<Value, K extends keyof Value> = Value[K] extends Function ? never : K
-
+type ExcludeFunction<Value, K extends keyof Value> = Value[K] extends Function
+  ? never
+  : K
 
 type Drop1<Arr extends any[]> = ((...args: Arr) => void) extends ((first: any, ...rest: infer Rest) => void)
   ? Rest
@@ -11,24 +14,26 @@ type IndexesOf<Arr extends any[]> = Arr extends []
   ? never
   : Partial<Drop1<Arr>>['length']
 
-
-type IfAny<T, Y, N> = 0 extends (1 & T) ? Y : N; 
+type IfAny<T, Y, N> = 0 extends (1 & T)
+  ? Y
+  : N;
 
 type IsAny<T> = IfAny<T, true, never>;
 
+type IfEquals<X, Y, A = X, B = never> = (<T>() => T extends X ? 1 : 2) extends (<T>() => T extends Y ? 1 : 2)
+  ? A
+  : B
 
-type IfEquals<X, Y, A = X, B = never> =
-  (<T>() => T extends X ? 1 : 2) extends
-  (<T>() => T extends Y ? 1 : 2) ? A : B
-
+// eslint-disable-next-line no-unused-vars
 type WritableKeys<T> = {
+  // eslint-disable-next-line no-unused-vars
   [P in keyof T]-?: IfEquals<{ [Q in P]: T[P] }, { -readonly [Q in P]: T[P] }, P>
 }[keyof T]
 
 type ReadonlyKeys<T> = {
+  // eslint-disable-next-line no-unused-vars
   [P in keyof T]-?: IfEquals<{ [Q in P]: T[P] }, { -readonly [Q in P]: T[P] }, never, P>
 }[keyof T]
-
 
 type NonUnitable<T> = Exclude<T, null | undefined | void>
 
@@ -38,8 +43,8 @@ type ExtractUnit<T> = Exclude<T, NonUnitable<T>> extends infer Unit
 
 // --------------------  accessors  ------------------------------------------------------------------------------------
 
-export const get: unique symbol = Symbol()
-export const set: unique symbol = Symbol()
+export const get: unique symbol = Symbol('read a property of an object using a Key Path')
+export const set: unique symbol = Symbol('write a property of an object using a Key Path')
 
 type KeyPathGetter<Root extends object, Value> = (root: Root) => Value
 type KeyPathSetter<Root extends object, Value> = (root: Root, value: Value) => void
@@ -52,140 +57,108 @@ type AccessorsForKeyPath<
   ? { [get]: KeyPathGetter<Root, Value>; [set]: KeyPathSetter<Root, Value> }
   : { [get]: KeyPathGetter<Root, Value> }
 
-// --------------------  object  ---------------------------------------------------------------------------------------
+// --------------------  with unit  ------------------------------------------------------------------------------------
 
-type Unified_ObjectKeyPathForUnitableValue<
+type ArrayKeyPathForValueWithUnit<
   Root extends object,
-  NonUnitableValue,
+  ValueWithoutUnit extends any[],
   IsWritable extends boolean,
   Unit extends null | undefined | void
 > = {
-  [K in keyof NonUnitableValue as ExcludeFunction<NonUnitableValue, K>]-?: KeyPath<Root, NonUnitableValue[K] | Unit>
-} & AccessorsForKeyPath<Root, NonUnitableValue | Unit, IsWritable>
- 
-type Unified_ObjectKeyPathForRealValue<
+  [Index in IndexesOf<ValueWithoutUnit>]: KeyPath<Root, ValueWithoutUnit[Index] | Unit>
+} & {
+  length: KeyPath<Root, number | Unit>
+} & AccessorsForKeyPath<Root, ValueWithoutUnit | Unit, IsWritable>
+
+type ObjectKeyPathForValueWithUnit<
+  Root extends object,
+  ValueWithoutUnit,
+  IsWritable extends boolean,
+  Unit extends null | undefined | void
+> = {
+  [K in keyof ValueWithoutUnit as ExcludeFunction<ValueWithoutUnit, K>]-?: KeyPath<Root, ValueWithoutUnit[K] | Unit>
+} & AccessorsForKeyPath<Root, ValueWithoutUnit | Unit, IsWritable>
+
+type KeyPathForValueWithUnit<
+  Root extends object,
+  ValueWithoutUnit,
+  IsWritable extends boolean,
+  Unit extends null | undefined | void
+> = ValueWithoutUnit extends any[]
+  ? ArrayKeyPathForValueWithUnit<Root, ValueWithoutUnit, IsWritable, Unit>
+  : ObjectKeyPathForValueWithUnit<Root, ValueWithoutUnit, IsWritable, Unit>
+
+// --------------------  without unit  ---------------------------------------------------------------------------------
+
+type ObjectKeyPathForRealValue<
   Root extends object,
   Value,
   IsWritable extends boolean
 > = {
-  [K in keyof Value as ExcludeFunction<Value, K>]-?: Unified_KeyPath<Root, Value[K], IsWritable & (K extends ReadonlyKeys<Value> ? false : true)>
+  [K in keyof Value as ExcludeFunction<Value, K>]-?: BaseKeyPath<
+    Root,
+    Value[K],
+    IsWritable & (K extends ReadonlyKeys<Value> ? false : true)
+  >
 } & AccessorsForKeyPath<Root, Value, IsWritable>
 
-type Unified_ObjectKeyPath<
+type ArrayKeyPathForRealValue<
+  Root extends object,
+  Value extends any[],
+  IsWritable extends boolean
+> = {
+  [Index in IndexesOf<Value>]: BaseKeyPath<Root, Value[Index], IsWritable>
+} & {
+  length: BaseKeyPath<Root, number, IsWritable>
+} & AccessorsForKeyPath<Root, Value, IsWritable>
+
+type KeyPathForRealValue<
   Root extends object,
   Value,
   IsWritable extends boolean
-> = ExtractUnit<Value> extends never
-  ? Unified_ObjectKeyPathForRealValue<Root, Value, IsWritable>
-  : ExtractUnit<Value> extends infer Unit
-    ? Unit extends null | undefined | void
-      ? Unified_ObjectKeyPathForUnitableValue<Root, Exclude<Value, Unit>, IsWritable, Unit>
-      : never
-    : never
+> = Value extends any[]
+  ? ArrayKeyPathForRealValue<Root, Value, IsWritable>
+  : ObjectKeyPathForRealValue<Root, Value, IsWritable>
 
-// --------------------  array  ----------------------------------------------------------------------------------------
-
-type Unified_ArrayKeyPathForUnitableValue<
-  Root extends object,
-  NonUnitableArrayValue,
-  IsWritable extends boolean,
-  Unit extends null | undefined | void
-> = NonUnitableArrayValue extends any[] ? {
-  [Index in IndexesOf<NonUnitableArrayValue>]: KeyPath<Root, NonUnitableArrayValue[Index] | Unit>
-} & AccessorsForKeyPath<Root, NonUnitableArrayValue | Unit, IsWritable> & {
-  length: KeyPath<Root, number | Unit>
-} : never
-
-type Unified_ArrayKeyPathForRealArrayValue<
-  Root extends object,
-  ArrayValue,
-  IsWritable extends boolean
-> = ArrayValue extends any[] ? {
-  [Index in IndexesOf<ArrayValue>]: Unified_KeyPath<Root, ArrayValue[Index], IsWritable>
-} & AccessorsForKeyPath<Root, ArrayValue, IsWritable> & {
-  length: Unified_KeyPath<Root, number, IsWritable>
-} : never
-
-type Unified_ArrayKeyPath<
-  Root extends object,
-  ArrayValue,
-  IsWritable extends boolean
-> = ExtractUnit<ArrayValue> extends never
-  ? Unified_ArrayKeyPathForRealArrayValue<Root, ArrayValue, IsWritable>
-  : ExtractUnit<ArrayValue> extends infer Unit
-    ? Unit extends null | undefined | void
-      ? Unified_ArrayKeyPathForUnitableValue<Root, Exclude<ArrayValue, Unit>, IsWritable, Unit>
-      : never
-    : never
-
-// --------------------  unified  --------------------------------------------------------------------------------------
-
-type Unified_KeyPathForUnitableValue<
-  Root extends object,
-  NonUnitableValue,
-  IsWritable extends boolean,
-  Unit extends null | undefined | void
-> = (NonUnitableValue extends any[]
-  ? { [Index in IndexesOf<NonUnitableValue>]: KeyPath<Root, NonUnitableValue[Index] | Unit> } & { length: KeyPath<Root, number | Unit> }
-  : { [K in keyof NonUnitableValue as ExcludeFunction<NonUnitableValue, K>]-?: KeyPath<Root, NonUnitableValue[K] | Unit> })
-  & AccessorsForKeyPath<Root, NonUnitableValue | Unit, IsWritable>
-
-type Unified_KeyPathForRealValue<
-  Root extends object,
-  Value,
-  IsWritable extends boolean
-> = (Value extends any[]
-  ? { [Index in IndexesOf<Value>]: Unified_KeyPath<Root, Value[Index], IsWritable> } & { length: Unified_KeyPath<Root, number, IsWritable> }
-  : { [K in keyof Value as ExcludeFunction<Value, K>]-?: Unified_KeyPath<Root, Value[K], IsWritable & (K extends ReadonlyKeys<Value> ? false : true)> })
-  & AccessorsForKeyPath<Root, Value, IsWritable>
-
-type _Unified_KeyPath_<
-  Root extends object,
-  Value,
-  IsWritable extends boolean
-> = ExtractUnit<Value> extends never
-  ? Unified_KeyPathForRealValue<Root, Value, IsWritable>
-  : ExtractUnit<Value> extends infer Unit
-    ? Unit extends null | undefined | void
-      ? Unified_KeyPathForUnitableValue<Root, Exclude<Value, Unit>, IsWritable, Unit>
-      : never
-    : never
-    
 // --------------------  key path  -------------------------------------------------------------------------------------
 
-type Unified_KeyPath_ORIG<Root extends object, Value, IsWritable extends boolean> = true extends IsAny<Value>
-  ? AccessorsForKeyPath<Root, Value, IsWritable>
-  : NonNullable<Value> extends never
-    ? AccessorsForKeyPath<Root, Value, IsWritable>
-    : NonNullable<Value> extends any[]
-      ? Unified_ArrayKeyPath<Root, Value, IsWritable>
-      : NonNullable<Value> extends object
-        ? Unified_ObjectKeyPath<Root, Value, IsWritable>
-        : AccessorsForKeyPath<Root, Value, IsWritable>
+type ComplexKeyPath<
+  Root extends object,
+  Value,
+  IsWritable extends boolean
+> = ExtractUnit<Value> extends never
+  ? KeyPathForRealValue<Root, Value, IsWritable>
+  : ExtractUnit<Value> extends infer Unit
+    ? Unit extends null | undefined | void
+      ? KeyPathForValueWithUnit<Root, Exclude<Value, Unit>, IsWritable, Unit>
+      : never
+    : never
 
-type Unified_KeyPath<Root extends object, Value, IsWritable extends boolean> = true extends IsAny<Value>
+type BaseKeyPath<
+  Root extends object,
+  Value,
+  IsWritable extends boolean
+> = true extends IsAny<Value>
   ? AccessorsForKeyPath<Root, Value, IsWritable>
   : NonNullable<Value> extends never
     ? AccessorsForKeyPath<Root, Value, IsWritable>
     : NonNullable<Value> extends object
-      ? _Unified_KeyPath_<Root, Value, IsWritable>
+      ? ComplexKeyPath<Root, Value, IsWritable>
       : AccessorsForKeyPath<Root, Value, IsWritable>
 
-export type WritableKeyPath<Root extends object, Value> = Unified_KeyPath<Root, Value, true>
-export type KeyPath<Root extends object, Value> = Unified_KeyPath<Root, Value, false>
+export type WritableKeyPath<Root extends object, Value> = BaseKeyPath<Root, Value, true>
+export type KeyPath<Root extends object, Value> = BaseKeyPath<Root, Value, false>
 
-export function KeyPath<Root extends object>(): WritableKeyPath<Root, Root> {
-  function makeKeyPath<
-    Root extends object,
-    Value
-  >(
+// todo: make mutable
+export function KeyPath<Root extends object> (): WritableKeyPath<Root, Root> {
+  function makeKeyPath<Root extends object, Value> (
     getter: KeyPathGetter<Root, Value>,
-    setter: KeyPathSetter<Root, Value>
+    setter: KeyPathSetter<Root, Value>,
   ): WritableKeyPath<Root, Value> {
-    return new Proxy({[get]: getter, [set]: setter} as any, {
-      get(target, prop) {
+    return new Proxy({ [get]: getter, [set]: setter } as any, {
+      get (target, prop) {
         if (prop === get || prop === set) return target[prop]
- 
+
         return makeKeyPath(
           (root: Root): Value[keyof Value] | null | undefined => {
             const node = target[get](root) as Value | null | undefined
@@ -195,20 +168,20 @@ export function KeyPath<Root extends object>(): WritableKeyPath<Root, Root> {
           },
           (root: Root, value: Value[keyof Value] | null | undefined): void => {
             const node = target[get](root) as Value | null | undefined
-            
+
             if (node) {
               if (Array.isArray(node)) {
                 const newNode = [...node]
                 newNode[prop as unknown as number] = value
                 target[set](root, newNode)
               } else {
-                const newNode = {...node, [prop]: value}
+                const newNode = { ...node, [prop]: value }
                 target[set](root, newNode)
               }
             }
           },
         )
-      }
+      },
     })
   }
 
@@ -220,8 +193,8 @@ export function KeyPath<Root extends object>(): WritableKeyPath<Root, Root> {
       } else {
         for (const prop in root) delete root[prop]
       }
-      
+
       for (const prop in value) root[prop] = value[prop]
-    }
+    },
   )
 }
